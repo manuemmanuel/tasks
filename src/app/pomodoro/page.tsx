@@ -184,6 +184,96 @@ export default function PomodoroPage() {
               </div>
             </Card>
 
+            {/* Add this section after the Timer Card */}
+            <Card className="mt-8 p-6 bg-[#0E0529]/80 border-violet-500/30 overflow-hidden hover:border-violet-500/50 transition-all duration-300 shadow-lg shadow-violet-500/10">
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-violet-100 mb-3">About the Pomodoro Technique</h2>
+                  <p className="text-violet-200/90">
+                    The Pomodoro Technique is a time management method that uses timed intervals of focused work followed by short breaks to improve productivity and maintain mental freshness.
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="text-xl font-semibold text-violet-100 mb-2">How to Use</h3>
+                  <ol className="space-y-2 text-violet-200/90">
+                    <li className="flex gap-2">
+                      <span className="text-violet-400">1.</span>
+                      <span>Choose a task you want to complete</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="text-violet-400">2.</span>
+                      <span>Work on the task for 25 minutes (one Pomodoro)</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="text-violet-400">3.</span>
+                      <span>Take a 5-minute break when the timer rings</span>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="text-violet-400">4.</span>
+                      <span>After 4 Pomodoros, take a longer 15-minute break</span>
+                    </li>
+                  </ol>
+                </div>
+
+                <div>
+                  <h3 className="text-xl font-semibold text-violet-100 mb-2">Benefits</h3>
+                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <li className="flex items-start gap-3 bg-violet-500/10 p-4 rounded-lg">
+                      <div className="w-1.5 h-1.5 mt-2 rounded-full bg-violet-400" />
+                      <div>
+                        <h4 className="font-medium text-violet-100">Improved Focus</h4>
+                        <p className="text-sm text-violet-200/80">Minimize distractions and maintain concentration for better productivity</p>
+                      </div>
+                    </li>
+                    <li className="flex items-start gap-3 bg-violet-500/10 p-4 rounded-lg">
+                      <div className="w-1.5 h-1.5 mt-2 rounded-full bg-violet-400" />
+                      <div>
+                        <h4 className="font-medium text-violet-100">Reduced Mental Fatigue</h4>
+                        <p className="text-sm text-violet-200/80">Regular breaks help prevent burnout and maintain mental freshness</p>
+                      </div>
+                    </li>
+                    <li className="flex items-start gap-3 bg-violet-500/10 p-4 rounded-lg">
+                      <div className="w-1.5 h-1.5 mt-2 rounded-full bg-violet-400" />
+                      <div>
+                        <h4 className="font-medium text-violet-100">Better Time Management</h4>
+                        <p className="text-sm text-violet-200/80">Track and optimize how you spend your time on tasks</p>
+                      </div>
+                    </li>
+                    <li className="flex items-start gap-3 bg-violet-500/10 p-4 rounded-lg">
+                      <div className="w-1.5 h-1.5 mt-2 rounded-full bg-violet-400" />
+                      <div>
+                        <h4 className="font-medium text-violet-100">Increased Accountability</h4>
+                        <p className="text-sm text-violet-200/80">Monitor your progress and maintain a consistent work rhythm</p>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 className="text-xl font-semibold text-violet-100 mb-2">Tips for Success</h3>
+                  <ul className="text-violet-200/90 space-y-2">
+                    <li className="flex items-center gap-2">
+                      <div className="w-1 h-1 rounded-full bg-violet-400" />
+                      <span>Choose a quiet workspace with minimal distractions</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1 h-1 rounded-full bg-violet-400" />
+                      <span>Use your breaks to stretch, move around, or have a quick snack</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1 h-1 rounded-full bg-violet-400" />
+                      <span>Keep a task list to track what you want to accomplish</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1 h-1 rounded-full bg-violet-400" />
+                      <span>Adjust the timer intervals to find what works best for you</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </Card>
+
             {/* Settings Modal */}
             {showSettings && (
               <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">

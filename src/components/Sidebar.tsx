@@ -170,6 +170,7 @@ export default function Sidebar() {
           <NavItem href="/calendar" icon={Calendar} label="Calendar" isActive={isActive("/calendar")} expanded={expanded} />
           <NavItem href="/pomodoro" icon={Clock} label="Pomodoro" isActive={isActive("/pomodoro")} expanded={expanded} />
           <NavItem href="/diary" icon={BookOpen} label="Diary" isActive={isActive("/diary")} expanded={expanded} />
+          <NavItem href="/checklist" icon={CheckSquare} label="Checklist" isActive={isActive("/checklist")} expanded={expanded} />
           <NavItem href="/verification" icon={Shield} label="Task Verification" isActive={isActive("/verification")} expanded={expanded} />
         </NavGroup>
 

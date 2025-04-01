@@ -1,143 +1,164 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { User, Camera, Mail, Key, Save } from 'lucide-react'
-import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
-import Sidebar from '@/components/Sidebar'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/contexts/AuthContext'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Shield, User, Mail, PenTool, Save, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
+import Sidebar from '@/components/Sidebar'
 import { cn } from "@/lib/utils"
 
 interface UserProfile {
+  id: string
+  user_id: string
   username: string
   email: string
-  bio: string
+  bio: string | null
   avatar_url: string | null
-  created_at: string
   level: number
   xp: number
   achievements: string[]
+  created_at: string
+  updated_at: string
 }
 
 export default function ProfilePage() {
-  const { user, loading } = useAuth()
-  const [profile, setProfile] = useState<UserProfile | null>(null)
-  const [isEditing, setIsEditing] = useState(false)
-  const [editedProfile, setEditedProfile] = useState<Partial<UserProfile>>({})
-  const [avatarFile, setAvatarFile] = useState<File | null>(null)
+  const router = useRouter()
+  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    bio: '',
+    avatar_url: ''
+  })
 
   useEffect(() => {
-    if (!loading && !user) {
-      window.location.href = '/login'
-      return
-    }
+    fetchProfile()
+  }, [])
 
-    loadProfile()
-  }, [user, loading])
-
-  const loadProfile = async () => {
+  const fetchProfile = async () => {
     try {
-      if (!user) return
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      
+      if (authError) {
+        console.error('Auth error:', authError)
+        toast.error('Authentication error')
+        router.push('/auth/login')
+        return
+      }
 
-      const { data, error } = await supabase
+      if (!user) {
+        console.log('No user found')
+        router.push('/auth/login')
+        return
+      }
+
+      console.log('Fetching profile for user:', user.id)
+
+      const { data, error: profileError } = await supabase
         .from('user_profiles')
         .select('*')
         .eq('user_id', user.id)
         .single()
 
-      if (error) {
-        if (error.code === 'PGRST116') {
-          // Create profile if it doesn't exist
-          const newProfile = {
-            user_id: user.id,
-            username: user.email?.split('@')[0] || 'User',
-            email: user.email || '',
-            bio: '',
-            avatar_url: null,
-            level: 1,
-            xp: 0,
-            achievements: []
-          }
+      if (profileError) {
+        console.error('Profile fetch error:', profileError)
+        throw profileError
+      }
 
-          const { data: createdProfile, error: createError } = await supabase
-            .from('user_profiles')
-            .insert(newProfile)
-            .select()
-            .single()
-
-          if (createError) throw createError
-          setProfile(createdProfile)
-          setEditedProfile(createdProfile)
-        } else {
-          throw error
-        }
-      } else {
+      if (data) {
+        console.log('Profile found:', data)
         setProfile(data)
-        setEditedProfile(data)
+        setFormData({
+          username: data.username,
+          email: data.email,
+          bio: data.bio || '',
+          avatar_url: data.avatar_url || ''
+        })
+      } else {
+        console.log('No profile found, creating new one')
+        // Create new profile if it doesn't exist
+        const { data: newProfile, error: createError } = await supabase
+          .from('user_profiles')
+          .insert([
+            {
+              user_id: user.id,
+              username: user.user_metadata?.username || user.email?.split('@')[0] || 'User',
+              email: user.email || '',
+              bio: '',
+              avatar_url: user.user_metadata?.avatar_url || null,
+              level: 1,
+              xp: 0,
+              achievements: []
+            }
+          ])
+          .select()
+          .single()
+
+        if (createError) {
+          console.error('Profile creation error:', createError)
+          throw createError
+        }
+
+        if (newProfile) {
+          console.log('New profile created:', newProfile)
+          setProfile(newProfile)
+          setFormData({
+            username: newProfile.username,
+            email: newProfile.email,
+            bio: newProfile.bio || '',
+            avatar_url: newProfile.avatar_url || ''
+          })
+        }
       }
     } catch (error) {
-      console.error('Error loading profile:', error)
+      console.error('Error in fetchProfile:', error)
+      toast.error('Failed to load profile. Please try again.')
+    } finally {
+      setLoading(false)
     }
   }
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setAvatarFile(e.target.files[0])
-    }
-  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!profile) return
 
-  const handleSaveProfile = async () => {
+    setSaving(true)
     try {
-      if (!user || !profile) return
-      setSaving(true)
-
-      let avatarUrl = profile.avatar_url
-
-      // Upload new avatar if selected
-      if (avatarFile) {
-        const fileExt = avatarFile.name.split('.').pop()
-        const filePath = `avatars/${user.id}-${Math.random()}.${fileExt}`
-
-        const { error: uploadError } = await supabase.storage
-          .from('avatars')
-          .upload(filePath, avatarFile)
-
-        if (uploadError) throw uploadError
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('avatars')
-          .getPublicUrl(filePath)
-
-        avatarUrl = publicUrl
-      }
-
-      // Update profile
-      const { error: updateError } = await supabase
+      const { error } = await supabase
         .from('user_profiles')
         .update({
-          ...editedProfile,
-          avatar_url: avatarUrl
+          username: formData.username,
+          email: formData.email,
+          bio: formData.bio,
+          avatar_url: formData.avatar_url
         })
-        .eq('user_id', user.id)
+        .eq('id', profile.id)
 
-      if (updateError) throw updateError
+      if (error) throw error
 
-      // Reload profile
-      await loadProfile()
-      setIsEditing(false)
+      toast.success('Profile updated successfully')
+      fetchProfile() // Refresh profile data
     } catch (error) {
-      console.error('Error saving profile:', error)
+      console.error('Error updating profile:', error)
+      toast.error('Failed to update profile')
     } finally {
       setSaving(false)
     }
   }
 
-  if (!profile) return null
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-violet-400" />
+      </div>
+    )
+  }
 
   return (
     <div className="flex">
@@ -157,134 +178,107 @@ export default function ProfilePage() {
             </div>
 
             {/* Profile Card */}
-            <Card className="p-8 bg-[#0E0529]/80 border-violet-500/30 shadow-lg">
-              <div className="flex flex-col md:flex-row gap-8">
-                {/* Avatar Section */}
-                <div className="flex flex-col items-center gap-4">
-                  <div className="relative w-40 h-40">
-                    {profile.avatar_url ? (
-                      <img
-                        src={profile.avatar_url}
-                        alt="Profile"
-                        className="w-full h-full rounded-full object-cover border-4 border-violet-500/30"
-                      />
-                    ) : (
-                      <div className="w-full h-full rounded-full bg-violet-500/20 flex items-center justify-center">
-                        <User className="w-20 h-20 text-violet-300" />
-                      </div>
-                    )}
-                    {isEditing && (
-                      <label className="absolute bottom-0 right-0 p-2 bg-violet-500 rounded-full cursor-pointer hover:bg-violet-600 transition-colors">
-                        <Camera className="w-5 h-5" />
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={handleAvatarChange}
-                        />
-                      </label>
-                    )}
-                  </div>
-                  <div className="text-center">
-                    <Badge className="bg-violet-500/20 text-violet-200 border-violet-500/30">
-                      Level {profile.level}
-                    </Badge>
-                    <div className="mt-2 text-sm text-violet-300">
-                      {profile.xp} XP
-                    </div>
+            <div className="bg-[#0E0529]/50 border border-violet-500/20 rounded-xl p-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-violet-300/80">Username</label>
+                  <div className="relative">
+                    <PenTool className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-violet-400/60" />
+                    <Input
+                      type="text"
+                      value={formData.username}
+                      onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                      className="pl-10 bg-[#0E0529]/50 border-violet-500/20 text-violet-100 placeholder:text-violet-300/40"
+                      placeholder="Enter your username"
+                    />
                   </div>
                 </div>
 
-                {/* Profile Info */}
-                <div className="flex-1 space-y-6">
-                  <div>
-                    <label className="text-sm font-medium text-violet-200">Username</label>
-                    {isEditing ? (
-                      <Input
-                        value={editedProfile.username || ''}
-                        onChange={(e) => setEditedProfile(prev => ({ ...prev, username: e.target.value }))}
-                        className="mt-1 bg-violet-950/50 border-violet-500/30 focus:border-violet-500/50"
-                      />
-                    ) : (
-                      <div className="mt-1 text-lg text-violet-100">{profile.username}</div>
-                    )}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-violet-300/80">Email</label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-violet-400/60" />
+                    <Input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      className="pl-10 bg-[#0E0529]/50 border-violet-500/20 text-violet-100 placeholder:text-violet-300/40"
+                      placeholder="Enter your email"
+                    />
                   </div>
+                </div>
 
-                  <div>
-                    <label className="text-sm font-medium text-violet-200">Email</label>
-                    <div className="mt-1 flex items-center gap-2">
-                      <Mail className="w-4 h-4 text-violet-400" />
-                      <span className="text-violet-100">{profile.email}</span>
-                    </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-violet-300/80">Bio</label>
+                  <Textarea
+                    value={formData.bio}
+                    onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                    className="bg-[#0E0529]/50 border-violet-500/20 text-violet-100 placeholder:text-violet-300/40 min-h-[100px]"
+                    placeholder="Tell us about yourself..."
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-violet-300/80">Avatar URL</label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-violet-400/60" />
+                    <Input
+                      type="text"
+                      value={formData.avatar_url}
+                      onChange={(e) => setFormData({ ...formData, avatar_url: e.target.value })}
+                      className="pl-10 bg-[#0E0529]/50 border-violet-500/20 text-violet-100 placeholder:text-violet-300/40"
+                      placeholder="Enter avatar URL"
+                    />
                   </div>
+                </div>
 
-                  <div>
-                    <label className="text-sm font-medium text-violet-200">Bio</label>
-                    {isEditing ? (
-                      <Textarea
-                        value={editedProfile.bio || ''}
-                        onChange={(e) => setEditedProfile(prev => ({ ...prev, bio: e.target.value }))}
-                        className="mt-1 bg-violet-950/50 border-violet-500/30 focus:border-violet-500/50 min-h-[100px]"
-                      />
-                    ) : (
-                      <div className="mt-1 text-violet-100">{profile.bio || 'No bio yet'}</div>
-                    )}
-                  </div>
-
-                  {/* Achievements */}
-                  <div>
-                    <label className="text-sm font-medium text-violet-200">Achievements</label>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {profile.achievements?.map((achievement, index) => (
-                        <Badge
-                          key={index}
-                          className="bg-violet-500/20 text-violet-200 border-violet-500/30"
-                        >
-                          {achievement}
-                        </Badge>
-                      ))}
-                      {(!profile.achievements || profile.achievements.length === 0) && (
-                        <div className="text-violet-300/80">No achievements yet</div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex justify-end gap-4 pt-4">
-                    {isEditing ? (
+                <div className="flex items-center gap-4 pt-4">
+                  <Button
+                    type="submit"
+                    disabled={saving}
+                    className="bg-violet-500 hover:bg-violet-600 text-white"
+                  >
+                    {saving ? (
                       <>
-                        <Button
-                          variant="outline"
-                          onClick={() => {
-                            setIsEditing(false)
-                            setEditedProfile(profile)
-                            setAvatarFile(null)
-                          }}
-                          className="bg-violet-950/50 border-violet-500/30 hover:bg-violet-500/20 transition-colors"
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          onClick={handleSaveProfile}
-                          disabled={saving}
-                          className="bg-violet-500 hover:bg-violet-600 transition-colors"
-                        >
-                          {saving ? 'Saving...' : 'Save Changes'}
-                          <Save className="w-4 h-4 ml-2" />
-                        </Button>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Saving...
                       </>
                     ) : (
-                      <Button
-                        onClick={() => setIsEditing(true)}
-                        className="bg-violet-500 hover:bg-violet-600 transition-colors"
-                      >
-                        Edit Profile
-                      </Button>
+                      <>
+                        <Save className="mr-2 h-4 w-4" />
+                        Save Changes
+                      </>
                     )}
+                  </Button>
+                </div>
+              </form>
+            </div>
+
+            {profile && (
+              <div className="mt-8 bg-[#0E0529]/50 border border-violet-500/20 rounded-xl p-6">
+                <h2 className="text-xl font-semibold text-violet-100 mb-4">Account Stats</h2>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-[#0E0529]/30 border border-violet-500/20 rounded-lg p-4">
+                    <div className="text-sm text-violet-300/60">Level</div>
+                    <div className="text-2xl font-bold text-violet-100">{profile.level}</div>
+                  </div>
+                  <div className="bg-[#0E0529]/30 border border-violet-500/20 rounded-lg p-4">
+                    <div className="text-sm text-violet-300/60">Experience</div>
+                    <div className="text-2xl font-bold text-violet-100">{profile.xp} XP</div>
+                  </div>
+                  <div className="bg-[#0E0529]/30 border border-violet-500/20 rounded-lg p-4">
+                    <div className="text-sm text-violet-300/60">Member Since</div>
+                    <div className="text-2xl font-bold text-violet-100">
+                      {new Date(profile.created_at).toLocaleDateString()}
+                    </div>
+                  </div>
+                  <div className="bg-[#0E0529]/30 border border-violet-500/20 rounded-lg p-4">
+                    <div className="text-sm text-violet-300/60">Achievements</div>
+                    <div className="text-2xl font-bold text-violet-100">{profile.achievements.length}</div>
                   </div>
                 </div>
               </div>
-            </Card>
+            )}
           </div>
         </div>
       </div>

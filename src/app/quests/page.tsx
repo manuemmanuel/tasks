@@ -355,22 +355,13 @@ export default function QuestsPage() {
                     </div>
 
                     <div className="mt-6 pt-4 border-t border-violet-500/20">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center">
                         <Badge 
                           variant="secondary"
                           className="bg-violet-500/20 text-violet-200 border-violet-500/30"
                         >
                           {quest.difficulty}
                         </Badge>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="text-violet-300 hover:text-violet-200 hover:bg-violet-500/10"
-                          onClick={() => handleViewDetails(quest.id)}
-                        >
-                          View Details
-                          <ArrowRight className="h-4 w-4 ml-2" />
-                        </Button>
                       </div>
                     </div>
                   </div>

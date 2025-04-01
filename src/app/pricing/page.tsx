@@ -142,16 +142,16 @@ export default function PricingPage() {
                     <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                       <span className="bg-violet-500 text-white text-xs font-semibold px-4 py-1.5 rounded-full flex items-center gap-1">
                         <Sparkles className="h-3 w-3" />
-                        Most Popular
+            Most Popular
                       </span>
-                    </div>
+          </div>
                   )}
                   <CardHeader className="space-y-3 sm:space-y-4">
                     <CardTitle className="text-xl sm:text-2xl text-violet-50">{tier.name}</CardTitle>
                     <div className="mt-2">
                       <span className="text-3xl sm:text-4xl font-bold text-violet-400">{tier.price}</span>
                       {tier.price !== "Custom" && <span className="text-violet-300/70 text-base sm:text-lg">/month</span>}
-                    </div>
+          </div>
                     <CardDescription className="text-sm sm:text-base text-violet-200/90">
                       {tier.description}
                     </CardDescription>
@@ -168,9 +168,9 @@ export default function PricingPage() {
                           <span className={`text-sm sm:text-base ${feature.included ? 'text-violet-200' : 'text-violet-300/50'}`}>
                             {feature.name}
                           </span>
-                        </li>
+            </li>
                       ))}
-                    </ul>
+          </ul>
                   </CardContent>
                   <CardFooter>
                     <Button
@@ -182,7 +182,7 @@ export default function PricingPage() {
                       onClick={() => handleSubscribe(tier.name)}
                     >
                       {tier.cta}
-                    </Button>
+          </Button>
                   </CardFooter>
                 </Card>
               </motion.div>

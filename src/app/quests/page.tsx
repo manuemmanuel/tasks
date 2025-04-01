@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils"
 import Sidebar from '@/components/Sidebar'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
+import { useRouter } from 'next/navigation'
 
 interface Task {
   id: string
@@ -37,6 +38,7 @@ export default function QuestsPage() {
   const [error, setError] = useState<string | null>(null)
   const [selectedTasks, setSelectedTasks] = useState<{ [key: string]: boolean }>({})
   const [generatedQuest, setGeneratedQuest] = useState<Quest | null>(null)
+  const router = useRouter()
 
   useEffect(() => {
     if (!loading && !user) {
@@ -166,6 +168,10 @@ export default function QuestsPage() {
       }
       return quest
     }))
+  }
+
+  const handleViewDetails = (questId: string) => {
+    router.push(`/quests/${questId}`)
   }
 
   return (
@@ -360,6 +366,7 @@ export default function QuestsPage() {
                           variant="ghost" 
                           size="sm" 
                           className="text-violet-300 hover:text-violet-200 hover:bg-violet-500/10"
+                          onClick={() => handleViewDetails(quest.id)}
                         >
                           View Details
                           <ArrowRight className="h-4 w-4 ml-2" />

@@ -49,8 +49,8 @@ export default function ProfilePage() {
         console.error('Auth error:', authError)
         toast.error('Authentication error')
         router.push('/auth/login')
-        return
-      }
+      return
+    }
 
       if (!user) {
         console.log('No user found')
@@ -87,18 +87,18 @@ export default function ProfilePage() {
           .from('user_profiles')
           .insert([
             {
-              user_id: user.id,
+            user_id: user.id,
               username: user.user_metadata?.username || user.email?.split('@')[0] || 'User',
-              email: user.email || '',
-              bio: '',
+            email: user.email || '',
+            bio: '',
               avatar_url: user.user_metadata?.avatar_url || null,
-              level: 1,
-              xp: 0,
-              achievements: []
-            }
+            level: 1,
+            xp: 0,
+            achievements: []
+          }
           ])
-          .select()
-          .single()
+            .select()
+            .single()
 
         if (createError) {
           console.error('Profile creation error:', createError)
@@ -192,7 +192,7 @@ export default function ProfilePage() {
                       placeholder="Enter your username"
                     />
                   </div>
-                </div>
+                      </div>
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-violet-300/80">Email</label>
@@ -216,7 +216,7 @@ export default function ProfilePage() {
                     className="bg-[#0E0529]/50 border-violet-500/20 text-violet-100 placeholder:text-violet-300/40 min-h-[100px]"
                     placeholder="Tell us about yourself..."
                   />
-                </div>
+                    </div>
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-violet-300/80">Avatar URL</label>
@@ -252,7 +252,7 @@ export default function ProfilePage() {
                   </Button>
                 </div>
               </form>
-            </div>
+                  </div>
 
             {profile && (
               <div className="mt-8 bg-[#0E0529]/50 border border-violet-500/20 rounded-xl p-6">

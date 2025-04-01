@@ -34,12 +34,18 @@ export default function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [loadingTasks, setLoadingTasks] = useState(true)
   const [showAddTask, setShowAddTask] = useState(false)
-  const [newTask, setNewTask] = useState({
+  const [newTask, setNewTask] = useState<{
+    title: string;
+    description: string;
+    due_date: string;
+    priority: 'low' | 'medium' | 'high';
+    tags: string[];
+  }>({
     title: '',
     description: '',
     due_date: '',
-    priority: 'medium' as const,
-    tags: [] as string[]
+    priority: 'medium',
+    tags: []
   })
   const [searchQuery, setSearchQuery] = useState('')
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all')

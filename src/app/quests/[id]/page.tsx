@@ -27,13 +27,13 @@ interface Quest {
   xp: number
 }
 
-interface PageProps {
+type Props = {
   params: {
-    id: string;
-  };
+    id: string
+  }
 }
 
-export default function QuestDetailsPage({ params }: PageProps) {
+export default function QuestDetailsPage({ params }: Props) {
   const router = useRouter()
   const { user, loading } = useAuth()
   const [quest, setQuest] = useState<Quest | null>(null)

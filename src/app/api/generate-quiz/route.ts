@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { GoogleGenerativeAI } from "@google/generative-ai"
-import { PDFDocument } from "pdf-lib"
+import pdfParse from "pdf-parse"
 
 // Initialize Gemini AI
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "")
@@ -17,15 +17,8 @@ export async function POST(req: Request) {
     // If PDF is provided, extract text from it
     if (pdfFile) {
       const arrayBuffer = await pdfFile.arrayBuffer()
-      const pdfDoc = await PDFDocument.load(arrayBuffer)
-      const pages = pdfDoc.getPages()
-      
-      // Extract text from each page
-      for (const page of pages) {
-        const { width, height } = page.getSize()
-        const text = await page.getText()
-        content += text + "\n"
-      }
+      const data = await pdfParse(Buffer.from(arrayBuffer))
+      content = data.text
     }
 
     // If topic is provided, add it to the content
